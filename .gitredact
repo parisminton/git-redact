@@ -1,0 +1,64 @@
+#!/bin/bash
+
+redactfiles=("$@")
+
+# store the values to be swapped in an array
+swap_array=($(sed -n '/^#/n
+/ \= / ! {
+  s/^\(.*\)$/\1 remove/p
+}
+s/\(.*\) \= \(.*\)$/\1 \2/p
+' < .gitredact-template))
+
+len=${#swap_array[*]}
+
+#echo "The length of swap_array is ${#swap_array[*]}."
+#for element in ${swap_array[*]}; do
+  #echo $element
+#done
+
+# print the results to standard output and prompt for approval
+#for ((i=0; i<$len; i=(i+3))); do
+  #if [ ${swap_array[(i+2)]} == 'remove' ]; then
+    #echo "I removed line ${swap_array[i]}, which contained \"${swap_array[(i+1)]}\"."
+  #else
+    #echo "On line ${swap_array[i]}, I replaced \"${swap_array[(i+1)]}\" with \"${swap_array[(i+2)]}\"."
+  #fi
+#done
+
+echo -e "\n--> You approve these changes? (Hit \"y\" or \"n\")"
+
+# The value we\'re searching for - .gitredact-template
+# The exact match of values we\'ve found - the process run by redact.sed
+# The value we\'re replacing with - .gitredact-template
+# The line number of any matches - the process run by redact.sed
+
+# write the redaction rules to a file
+sed -n '/^#/n
+/ \= / ! {
+  s/^\(.*\)$/\/\1\/ d/p
+}
+s/\(.*\) \= \(.*\)$/s\/\1\/\2\/g/p
+' < .gitredact-template > redact.sed
+
+# write the collection rules to a separate file
+sed -n '
+/${swap_array[i]}/ {
+  =
+  s/${swap_array[i]}/${swap_array[(i+1)}/p
+}
+' < $1 > collect.sed
+
+# store the swapped values and their line numbers in an array
+
+#for file in ${redactfiles[*]}; do
+  #for ((i=0; i<$len; i=(i+2))); do
+    #sed '' $file
+  #done
+#done
+
+sed -f redact.sed < $1 > test_redaction.txt
+
+#sed -n '$ s/redacted/&/p' ./.gitredact
+
+redacted=true
