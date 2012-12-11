@@ -1,4 +1,4 @@
-Hero's a dummy document with fake values that simulate things I might actually want to redact in a real project.
+Here's a dummy document with fake values that simulate things I might actually want to redact in a real project.
 
 Here's a fake user ID: 'samuel_l_jackson'
 Here's a fake password: 'tastybeverage'
