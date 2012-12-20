@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# OS-specific word boundary syntax
+# ... some test ...
+# wordboundary_left = \b || \< || [[:<:]]
+# wordboundary_right = \b || \> || [[:>:]]
+
 redactfiles=("$@")
 
 # store the values to be swapped in an array
@@ -12,55 +17,60 @@ s/\(.*\) \= \(.*\)$/\1 \2/p
 
 len=${#swap_array[*]}
 
-#echo "The length of swap_array is ${#swap_array[*]}."
-#for element in ${swap_array[*]}; do
-  #echo $element
-#done
-
-# The value we\'re searching for - .gitredact-template
-# The exact match of values we\'ve found - the process run by redact.sed
-# The value we\'re replacing with - .gitredact-template
-# The line number of any matches - the process run by redact.sed
-
-# write the redaction rules to a file. store the line numbers in an array
+# replace any word boundaries with the proper versions for the OS
 for ((i=0; i<$len; i=(i+2))); do
-  # in swap_array, replace the pattern with its actual match
-  if [ "${swap_array[i]}" != "$(grep -om 1 ${swap_array[i]} $1)" ]; then
-    swap_array[i]="$(grep -om 1 ${swap_array[i]} $1)"
+  swap_array[i]=$(echo "${swap_array[i]}" | sed -E '
+    s/\b(.+)\b/[[:<:]]\1[[:>:]]/g
+  ')
+done
+
+# in swap_array, replace the pattern with its actual match
+function replacePatternWithMatch () {
+  if [ "$1" != "$(grep -om 1 $1 $2)" ]; then
+    swap_array[$3]="$(grep -om 1 $1 $2)"
+    #echo ${swap_array[$3]}
   fi
  
   # there\'s no array.push() in bash...
-  operations[${#operations[*]}]=$(sed -n "/${swap_array[i]}/ =" $1)
-
-  if [ ${swap_array[(i+1)]} == 'remove' ]; then
-    echo -e "/${swap_array[i]}/ d" >> redact.sed
-    operations[${#operations[*]}]="${swap_array[i]}"
-    operations[${#operations[*]}]='remove'
-  else
-    echo -e "/${swap_array[i]}/ {\n  s/${swap_array[i]}/${swap_array[(i+1)]}/g\n}" >> redact.sed
-    operations[${#operations[*]}]="${swap_array[i]}"
-    operations[${#operations[*]}]="${swap_array[(i+1)]}"
-  fi
-done
+  results[${#results[*]}]=$(sed -n "/$1/ =" $2)
+}
 
 #for value in ${swap_array[*]}; do
   #echo $value
 #done
 #echo "The length of swap_array is ${#swap_array[*]}."
 
-#for number in ${operations[*]}; do
-  #echo $number
-#done
-#echo "The length of operations is ${#operations[*]}."
+# write the redaction rules to a file
+# store our redact/replace values and their line numbers in an array
+for ((i=0; i<$len; i=(i+2))); do
+  if [ ${swap_array[(i+1)]} == 'remove' ]; then
+    echo -e "/${swap_array[i]}/ d" >> redact.sed
+    replacePatternWithMatch ${swap_array[i]} $1 i
+    results[${#results[*]}]=${swap_array[i]}
+    results[${#results[*]}]='remove'
+  else
+    echo -e "s/${swap_array[i]}/${swap_array[(i+1)]}/g" >> redact.sed
+    replacePatternWithMatch ${swap_array[i]} $1 i
+    results[${#results[*]}]=${swap_array[i]}
+    results[${#results[*]}]=${swap_array[(i+1)]}
+  fi
+done
 
-o_len=${#operations[*]}
+r_len=${#results[*]}
+
+#for value in ${results[*]}; do
+  #echo $value
+#done
+#echo "The length of results is ${#results[*]}."
+
+#echo ${results[3]}
 
 # print the results to standard output and prompt for approval
-for ((i=0; i<$o_len; i=(i+3))); do
-  if [ ${operations[(i+2)]} == 'remove' ]; then
-    echo "I removed line ${operations[i]}, which contained \"${operations[(i+1)]}\"."
+for ((i=0; i<$r_len; i=(i+3))); do
+  if [ ${results[(i+2)]} == 'remove' ]; then
+    echo "I removed line ${results[i]}, which contained \"${results[(i+1)]}\"."
   else
-    echo "On line ${operations[i]}, I replaced \"${operations[(i+1)]}\" with \"${operations[(i+2)]}\"."
+    echo "On line ${results[i]}, I replaced \"${results[(i+1)]}\" with \"${results[(i+2)]}\"."
   fi
 done
 
