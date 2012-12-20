@@ -4,6 +4,12 @@ git-redact
 Changelog
 ---------
 
+**12/20/12**
+
+Before redactions are made, any regex word boundary (`\b`) matches in `swap_array` are substituted for the syntax understood by sed in OS X (`[[:<:]] and [[:>:]]`). Eventually, I'd like to test for the OS and replace this value with the syntax understood by each.
+
+
+
 **12/11/12**
 
 The `operations` array contains actual line numbers and actual values for every pattern matched during a redaction. This array is used to log results.
