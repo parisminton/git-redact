@@ -26,11 +26,6 @@ done
 
 # in swap_array, replace the pattern with its actual match
 function replacePatternWithMatch () {
-  if [ "$1" != "$(grep -om 1 $1 $2)" ]; then
-    swap_array[$3]="$(grep -om 1 $1 $2)"
-    #echo ${swap_array[$3]}
-  fi
- 
   # there is no array.push() in bash...
   results[${#results[*]}]=$(sed -n "/$1/ =" $2)
 }
@@ -82,7 +77,7 @@ echo -e "\n--> You approve these changes? (Hit \"y\" or \"n\")"
   #done
 #done
 
-sed -f redact.sed < $1 > test_redaction.txt
+sed -Ef redact.sed < $1 > test_redaction.txt
 
 #sed -n '$ s/redacted/&/p' ./.gitredact
 
