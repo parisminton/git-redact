@@ -1,12 +1,15 @@
 #!/bin/bash
 
 # OS-specific word boundary syntax
-# ... some test ...
-# wordboundary_left = \b || \< || [[:<:]]
-# wordboundary_right = \b || \> || [[:>:]]
+if [ $(uname) == 'Darwin' ]; then
+  wordboundary_left="[[:<:]]"
+  wordboundary_right="[[:>:]]"
+fi
 
 redactfiles=("$@")
-
+#
+### COLLECT ###
+#
 # store the values to be swapped in an array
 swap_array=($(sed -n '/^#/n
 / \= / ! {
@@ -17,19 +20,6 @@ s/\(.*\) \= \(.*\)$/\1 \2/p
 
 len=${#swap_array[*]}
 
-# replace any word boundaries with the proper versions for the OS
-for ((i=0; i<$len; i=(i+2))); do
-  swap_array[i]=$(echo "${swap_array[i]}" | sed -E '
-    s/\b(.+)\b/[[:<:]]\1[[:>:]]/g
-  ')
-done
-
-# in swap_array, replace the pattern with its actual match
-function replacePatternWithMatch () {
-  # there is no array.push() in bash...
-  results[${#results[*]}]=$(sed -n "/$1/ =" $2)
-}
-
 #for value in ${swap_array[*]}; do
   #echo $value
 #done
@@ -38,14 +28,37 @@ function replacePatternWithMatch () {
 # write the redaction rules to a file
 # store our redact/replace values and their line numbers in an array
 for ((i=0; i<$len; i=(i+2))); do
+
+  # capture the original word boundaries and the term they enclose
+  echo ${swap_array[i]} | grep -q '\\b'
+  if [ $? == 0 ]; then
+    # there is no array.push() in bash...
+    orig_word_boundary[${#orig_word_boundary[*]}]=$i
+    orig_word_boundary[${#orig_word_boundary[*]}]=$(echo ${swap_array[i]} | sed -nE '
+      s/(\\b).+\\b/\1/p
+    ')
+    orig_word_boundary[${#orig_word_boundary[*]}]=$(echo ${swap_array[i]} | sed -nE '
+      s/\\b(.+)\\b/\1/p
+    ')
+    orig_word_boundary[${#orig_word_boundary[*]}]=$(echo ${swap_array[i]} | sed -nE '
+      s/\\b.+(\\b)/\1/p
+    ')
+  fi
+
+  # replace any word boundaries with the proper versions for the OS
+  swap_array[i]=$(echo "${swap_array[i]}" | sed -E '
+    s/\\b(.+)\\b/[[:<:]]\1[[:>:]]/g
+  ')
+
+  # store the line number of the match
+  results[${#results[*]}]=$(sed -n "/${swap_array[i]}/ =" $1)
+  
   if [ ${swap_array[(i+1)]} == 'remove' ]; then
     echo -e "/${swap_array[i]}/ d" >> redact.sed
-    replacePatternWithMatch ${swap_array[i]} $1 i
-    results[${#results[*]}]=${swap_array[i]}
+    results[${#results[*]}]=$(sed -n "s/.*\(${swap_array[i]}\).*/\1/gp" $1)
     results[${#results[*]}]='remove'
   else
     echo -e "s/${swap_array[i]}/${swap_array[(i+1)]}/g" >> redact.sed
-    replacePatternWithMatch ${swap_array[i]} $1 i
     results[${#results[*]}]=${swap_array[i]}
     results[${#results[*]}]=${swap_array[(i+1)]}
   fi
@@ -60,12 +73,26 @@ r_len=${#results[*]}
 
 #echo ${results[3]}
 
+#
+### CONFIRM ###
+#
 # print the results to standard output and prompt for approval
 for ((i=0; i<$r_len; i=(i+3))); do
+
+  # if we had to swap word boundaries, print the original syntax here
+  wb_len=${#orig_word_boundary[*]}
+  for ((j=0; j<$wb_len; j=(j+4))); do
+    if (( i-(i/3) == ${orig_word_boundary[j]} )); then
+      original="${orig_word_boundary[j+1]}${orig_word_boundary[j+2]}${orig_word_boundary[j+3]}"
+    else
+      original="${results[(i+1)]}"
+    fi
+  done
+
   if [ ${results[(i+2)]} == 'remove' ]; then
-    echo "I removed line ${results[i]}, which contained \"${results[(i+1)]}\"."
+    echo "I removed line ${results[i]}, which contained \"$original\"."
   else
-    echo "On line ${results[i]}, I replaced \"${results[(i+1)]}\" with \"${results[(i+2)]}\"."
+    echo "On line ${results[i]}, I replaced \"$original\" with \"${results[(i+2)]}\"."
   fi
 done
 
@@ -77,7 +104,10 @@ echo -e "\n--> You approve these changes? (Hit \"y\" or \"n\")"
   #done
 #done
 
-sed -Ef redact.sed < $1 > test_redaction.txt
+#
+### REDACT ###
+#
+sed -f redact.sed < $1 > test_redaction.txt
 
 #sed -n '$ s/redacted/&/p' ./.gitredact
 
