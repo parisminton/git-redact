@@ -46,9 +46,10 @@ for ((i=0; i<$len; i=(i+2))); do
   fi
 
   # replace any word boundaries with the proper versions for the OS
-  swap_array[i]=$(echo "${swap_array[i]}" | sed -E '
-    s/\\b(.+)\\b/[[:<:]]\1[[:>:]]/g
-  ')
+  swap_array[i]=$(echo "${swap_array[i]}" | sed -E "
+    s/^\\\b/$wordboundary_left/
+    s/\\\b$/$wordboundary_right/
+  ")
 
   # store the line number of the match
   results[${#results[*]}]=$(sed -n "/${swap_array[i]}/ =" $1)

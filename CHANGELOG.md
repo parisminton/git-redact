@@ -6,9 +6,11 @@ Changelog
 
 **1/8/13**
 
-Confirmation reporting is prettier. If a redaction occurs on more than one line, the line numbers are separated by commas before they're printed in the sentence. The last number is separated from the penultimate number by spaces and the word 'and'.
+1. Confirmation reporting is prettier. If a redaction occurs on more than one line, the line numbers are separated by commas before they're printed in the sentence. The last number is separated from the penultimate number by spaces and the word 'and'.
 
 The odd line break is gone.
+
+2. More consistent replacement of word boundaries.
 
 
 
