@@ -90,18 +90,12 @@ for ((i=0; i<$r_len; i=(i+3))); do
   done
 
   # if redactions were made on multiple lines, separate line numbers with commas
-  echo ${results[i]} | grep -q ' '
-  if [ $? == 0 ]; then
-    lines=$(echo ${results[i]} | sed -nE '
-      s/([0-9]+) /\1, /g
-      s/[0-9]+,/lines &/
-      s/([0-9]+), ([0-9]+)$/\1 and \2/gp
-    ')
-  else
-    lines=$(echo ${results[i]} | sed -nE '
-      s/[0-9]+/line &/p
-    ')
-  fi
+  lines=$(echo ${results[i]} | sed -E '
+    s/[0-9]+/line &/
+    s/([0-9]+) /\1, /g
+    s/line ([0-9]+,)/lines \1/
+    s/([0-9]+), ([0-9]+)$/\1 and \2/
+  ')
 
   if [ ${results[(i+2)]} == 'remove' ]; then
     echo "I removed $lines, which contained \"$original\"."

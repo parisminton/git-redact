@@ -10,3 +10,9 @@ Here's a fake e-mail address: sam@samuel_l_jackson.com
 console.log("Say 'what' just one more time!");
 
 Here's one of my go-to dummy values: mokey
+
+Whenever possible, I like to drink a tastybeverage. You'd think I'd get sick of tastybeverages in excess, but you'd be wrong.
+
+There's nothing better than a tastybeverage on a hot summer day.
+
+I will now take my leave and indulge in a tastybeverage.

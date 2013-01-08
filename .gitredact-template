@@ -1,7 +1,7 @@
 # These are patterns for sed matching, not strings.
 sam@samuel_l_jackson.com = you@youremailaddress.com
-\bsamuel_l_jackson\b = username
-tastybeverage = password
+samuel_l_jackson = username
+\btastybeverage\b = password
 ASD564-ASDGJN709334-BVNV2343 = api_key
 console.log(.*);
 mokey
