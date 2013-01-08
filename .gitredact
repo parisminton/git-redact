@@ -89,10 +89,24 @@ for ((i=0; i<$r_len; i=(i+3))); do
     fi
   done
 
-  if [ ${results[(i+2)]} == 'remove' ]; then
-    echo "I removed line ${results[i]}, which contained \"$original\"."
+  # if redactions were made on multiple lines, separate line numbers with commas
+  echo ${results[i]} | grep -q ' '
+  if [ $? == 0 ]; then
+    lines=$(echo ${results[i]} | sed -nE '
+      s/([0-9]+) /\1, /g
+      s/[0-9]+,/lines &/
+      s/([0-9]+), ([0-9]+)$/\1 and \2/gp
+    ')
   else
-    echo "On line ${results[i]}, I replaced \"$original\" with \"${results[(i+2)]}\"."
+    lines=$(echo ${results[i]} | sed -nE '
+      s/[0-9]+/line &/p
+    ')
+  fi
+
+  if [ ${results[(i+2)]} == 'remove' ]; then
+    echo "I removed $lines, which contained \"$original\"."
+  else
+    echo "On $lines, I replaced \"$original\" with \"${results[(i+2)]}\"."
   fi
 done
 

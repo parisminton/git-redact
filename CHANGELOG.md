@@ -4,6 +4,14 @@ git-redact
 Changelog
 ---------
 
+**1/8/13**
+
+Confirmation reporting is prettier. If a redaction occurs on more than one line, the line numbers are separated by commas before they're printed in the sentence. The last number is separated from the penultimate number by spaces and the word 'and'.
+
+The odd line break is gone.
+
+
+
 **1/6/13**
 
 As a first step, git-redact tests for the operating system. If it's OS X, it uses that system's ugly word boundary syntax (`[[:<:]]` and `[[:>:]]`).
