@@ -29,22 +29,6 @@ len=${#swap_array[*]}
 # store our redact/replace values and their line numbers in an array
 for ((i=0; i<$len; i=(i+2))); do
 
-  # capture the original word boundaries and the term they enclose
-  echo ${swap_array[i]} | grep -q '\\b'
-  if [ $? == 0 ]; then
-    # there is no array.push() in bash...
-    orig_word_boundary[${#orig_word_boundary[*]}]=$i
-    orig_word_boundary[${#orig_word_boundary[*]}]=$(echo ${swap_array[i]} | sed -nE '
-      s/(\\b).+\\b/\1/p
-    ')
-    orig_word_boundary[${#orig_word_boundary[*]}]=$(echo ${swap_array[i]} | sed -nE '
-      s/\\b(.+)\\b/\1/p
-    ')
-    orig_word_boundary[${#orig_word_boundary[*]}]=$(echo ${swap_array[i]} | sed -nE '
-      s/\\b.+(\\b)/\1/p
-    ')
-  fi
-
   # replace any word boundaries with the proper versions for the OS
   swap_array[i]=$(echo "${swap_array[i]}" | sed -E "
     s/^\\\b/$wordboundary_left/
@@ -54,15 +38,29 @@ for ((i=0; i<$len; i=(i+2))); do
   # store the line number of the match
   results[${#results[*]}]=$(sed -n "/${swap_array[i]}/ =" $1)
   
+  # store the actual match, not just the user's pattern
+  the_match=$(sed -n "s/.*\(${swap_array[i]}\).*/\1/p" $1)
+  
+  # if the pattern originally included word boundaries, restore them in the result
+  if [[ "${swap_array[i]}" =~ "$wordboundary_left" ||
+        "${swap_array[i]}" =~ "$wordboundary_right" ]]; then
+    the_match=$(echo $the_match | sed "
+      s/$wordboundary_left/\\\b/g
+      s/$wordboundary_right/\\\b/g
+    ")
+  fi
+
+  results[${#results[*]}]=$the_match
+
+  # write redaction instructions to redact.sed
   if [ ${swap_array[(i+1)]} == 'remove' ]; then
     echo -e "/${swap_array[i]}/ d" >> redact.sed
-    results[${#results[*]}]=$(sed -n "s/.*\(${swap_array[i]}\).*/\1/gp" $1)
     results[${#results[*]}]='remove'
   else
     echo -e "s/${swap_array[i]}/${swap_array[(i+1)]}/g" >> redact.sed
-    results[${#results[*]}]=${swap_array[i]}
     results[${#results[*]}]=${swap_array[(i+1)]}
   fi
+
 done
 
 r_len=${#results[*]}
@@ -80,15 +78,7 @@ r_len=${#results[*]}
 # print the results to standard output and prompt for approval
 for ((i=0; i<$r_len; i=(i+3))); do
 
-  # if we had to swap word boundaries, print the original syntax here
-  wb_len=${#orig_word_boundary[*]}
-  for ((j=0; j<$wb_len; j=(j+4))); do
-    if (( i-(i/3) == ${orig_word_boundary[j]} )); then
-      original="${orig_word_boundary[j+1]}${orig_word_boundary[j+2]}${orig_word_boundary[j+3]}"
-    else
-      original="${results[(i+1)]}"
-    fi
-  done
+  # echo ${results[(i+1)]}
 
   # if redactions were made on multiple lines, separate line numbers with commas
   lines=$(echo ${results[i]} | sed -E '
@@ -99,9 +89,9 @@ for ((i=0; i<$r_len; i=(i+3))); do
   ')
 
   if [ ${results[(i+2)]} == 'remove' ]; then
-    echo "I removed $lines, which contained \"$original\"."
+    echo "I removed $lines, which contained \"${results[(i+1)]}\"."
   else
-    echo "On $lines, I replaced \"$original\" with \"${results[(i+2)]}\"."
+    echo "On $lines, I replaced \"${results[(i+1)]}\" with \"${results[(i+2)]}\"."
   fi
 done
 
