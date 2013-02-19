@@ -5,3 +5,6 @@ samuel_l_jackson = username
 ASD564-ASDGJN709334-BVNV2343 = api_key
 console.log(.*);
 \bmokey\b
+1234 = onetwothreefour 
+twitter_handle = michael23jordan 
+this_string_shouldnt_be_found = nothing

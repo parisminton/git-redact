@@ -11,6 +11,10 @@ console.log("Say 'what' just one more time!");
 
 Here's one of my go-to dummy values: mokey
 
+The giant rabbit android on "Aqua Teen Hunger Force" used to say "1234."
+
+Michael Jordan's Twitter handle is 'twitter_handle'.
+
 Whenever possible, I like to drink a tastybeverage. You'd think I'd get sick of tastybeverages in excess, but you'd be wrong.
 
 There's nothing better than a tastybeverage on a hot summer day.
