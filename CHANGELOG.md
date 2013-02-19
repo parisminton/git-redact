@@ -4,6 +4,15 @@ git-redact
 Changelog
 ---------
 
+**2/19/13**
+
+1. Patterns that aren\'t found don\'t print to the confirmation report.
+
+2. Instead of appearing many times in the confirmation report, redaction matches are printed only once for all their occurrences. 
+
+
+
+
 **1/8/13**
 
 1. Confirmation reporting is prettier. If a redaction occurs on more than one line, the line numbers are separated by commas before they're printed in the sentence. The last number is separated from the penultimate number by spaces and the word 'and'.

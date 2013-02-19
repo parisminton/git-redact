@@ -6,5 +6,5 @@ ASD564-ASDGJN709334-BVNV2343 = api_key
 console.log(.*);
 \bmokey\b
 1234 = onetwothreefour 
-twitter_handle = michael23jordan 
+@michael23jordan = twitter_handle
 this_string_shouldnt_be_found = nothing
