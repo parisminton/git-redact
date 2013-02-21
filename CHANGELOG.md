@@ -4,6 +4,14 @@ git-redact
 Changelog
 ---------
 
+**2/21/13**
+
+Redacts multiple files, and confirms changes made to each file separately.
+
+
+
+
+
 **2/19/13**
 
 1. Patterns that aren\'t found don\'t print to the confirmation report.

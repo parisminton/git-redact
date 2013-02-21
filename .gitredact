@@ -1,114 +1,132 @@
 #!/bin/bash
 
+# > git-redact <
+# Removes things you don\'t want in your commits.
+# By parisminton for Concrete Daydreams.
+# <parisminton@da.ydrea.ms>
+
+vrs='v 0.1'
+lastchange='2/21/13'
+
+echo -e "\n--> git-redact $vrs $lastchange <--"
+
 # OS-specific word boundary syntax
 if [ $(uname) == 'Darwin' ]; then
   wordboundary_left="[[:<:]]"
   wordboundary_right="[[:>:]]"
 fi
 
-redactfiles=("$@")
-#
-### COLLECT ###
-#
-# store the values to be swapped in an array
-swap_array=($(sed -n '/^#/n
-/ \= / ! {
-  s/^\(.*\)$/\1 remove/p
-}
-s/\(.*\) \= \(.*\)$/\1 \2/p
-' < .gitredact-template))
+#files_to_redact=$(git status --porcelain | sed 's/^.. \(.*\)$/\1/g')
+files_to_redact="fakedocument.txt fakedocument_2.txt fakedocument_3.txt"
 
-len=${#swap_array[*]}
+for filename in $files_to_redact; do
 
-#for value in ${swap_array[*]}; do
-  #echo $value
-#done
-#echo "The length of swap_array is ${#swap_array[*]}."
+  #
+  ### COLLECT ###
+  #
+  # store the values to be swapped in an array
+  swap_array=($(sed -n '/^#/n
+  / \= / ! {
+    s/^\(.*\)$/\1 remove/p
+  }
+  s/\(.*\) \= \(.*\)$/\1 \2/p
+  ' < .gitredact-template))
 
-# write the redaction rules to a file
-# store our redact/replace values and their line numbers in an array
-for ((i=0; i<$len; i=(i+2))); do
+  len=${#swap_array[*]}
 
-  # replace any word boundaries with the proper versions for the OS
-  swap_array[i]=$(echo "${swap_array[i]}" | sed -E "
-    s/^\\\b/$wordboundary_left/
-    s/\\\b$/$wordboundary_right/
-  ")
+  #for value in ${swap_array[*]}; do
+    #echo $value
+  #done
+  #echo "The length of swap_array is ${#swap_array[*]}."
 
-  # store the line number of the match
-  results[${#results[*]}]=$(sed -n "/${swap_array[i]}/ =" $1)
-  
-  # store the actual match, not just the user's pattern
-  the_match=$(sed -n "s/.*\(${swap_array[i]}\).*/\1/p" $1)
+  # write the redaction rules to a file
+  # store our redact/replace values and their line numbers in an array
+  for ((i=0; i<$len; i=(i+2))); do
 
-  # the matched value only needs to be printed once in the results
-  condensed_match=$(echo $the_match | sed -n "s/.*\(${swap_array[i]}\).*/\1/p")
-
-  # if the pattern originally included word boundaries, restore them in the result
-  if [[ "${swap_array[i]}" =~ "$wordboundary_left" ||
-        "${swap_array[i]}" =~ "$wordboundary_right" ]]; then
-    condensed_match=$(echo $condensed_match | sed "
-      s/$wordboundary_left/\\\b/g
-      s/$wordboundary_right/\\\b/g
+    # replace any word boundaries with the proper versions for the OS
+    swap_array[i]=$(echo "${swap_array[i]}" | sed -E "
+      s/^\\\b/$wordboundary_left/
+      s/\\\b$/$wordboundary_right/
     ")
-  fi
 
-  results[${#results[*]}]=$condensed_match
+    # store the line number of the match
+    results[${#results[*]}]=$(sed -n "/${swap_array[i]}/ =" $filename)
+    
+    # store the actual match, not just the user\'s pattern
+    the_match=$(sed -n "s/.*\(${swap_array[i]}\).*/\1/p" $filename)
 
-  # write redaction instructions to redact.sed
-  if [ ${swap_array[(i+1)]} == 'remove' ]; then
-    echo -e "/${swap_array[i]}/ d" >> redact.sed
-    results[${#results[*]}]='remove'
-  else
-    echo -e "s/${swap_array[i]}/${swap_array[(i+1)]}/g" >> redact.sed
-    results[${#results[*]}]=${swap_array[(i+1)]}
-  fi
+    # the matched value only needs to be printed once in the results
+    condensed_match=$(echo $the_match | sed -n "s/.*\(${swap_array[i]}\).*/\1/p")
 
-done
-
-r_len=${#results[*]}
-
-#for value in ${results[*]}; do
-  #echo $value
-#done
-#echo "The length of results is ${#results[*]}."
-
-#
-### CONFIRM ###
-#
-# print the results to standard output and prompt for approval
-for ((i=0; i<$r_len; i=(i+3))); do
-
-  # if redactions were made on multiple lines, separate line numbers with commas
-  lines=$(echo ${results[i]} | sed -E '
-    s/[0-9]+/line &/
-    s/([0-9]+) /\1, /g
-    s/line ([0-9]+,)/lines \1/
-    s/([0-9]+), ([0-9]+)$/\1 and \2/
-  ')
-
-  if [ "${results[i]}" != '' ]; then
-    if [ ${results[(i+2)]} == 'remove' ]; then
-      echo "I removed $lines, which contained \"${results[(i+1)]}\"."
-    else
-      echo "On $lines, I replaced \"${results[(i+1)]}\" with \"${results[(i+2)]}\"."
+    # if the pattern originally included word boundaries, restore them in the result
+    if [[ "${swap_array[i]}" =~ "$wordboundary_left" ||
+          "${swap_array[i]}" =~ "$wordboundary_right" ]]; then
+      condensed_match=$(echo $condensed_match | sed "
+        s/$wordboundary_left/\\\b/g
+        s/$wordboundary_right/\\\b/g
+      ")
     fi
-  fi
+
+    results[${#results[*]}]=$condensed_match
+
+    # write redaction instructions to a file
+    if [ ${swap_array[(i+1)]} == 'remove' ]; then
+      echo -e "/${swap_array[i]}/ d" >> redact_$filename.sed
+      results[${#results[*]}]='remove'
+    else
+      echo -e "s/${swap_array[i]}/${swap_array[(i+1)]}/g" >> redact_$filename.sed
+      results[${#results[*]}]=${swap_array[(i+1)]}
+    fi
+
+  done
+
+  r_len=${#results[*]}
+
+  #for value in ${results[*]}; do
+    #echo $value
+  #done
+  #echo "The length of results is ${#results[*]}."
+
+  #
+  ### CONFIRM ###
+  #
+  # print the results to standard output and prompt for approval
+  echo -e "\n--------------------------------------------------------"
+  echo -e "I made the following changes in $filename:\n"
+
+  for ((i=0; i<$r_len; i=(i+3))); do
+
+    # if redactions were made on multiple lines, separate line numbers with commas
+    lines=$(echo ${results[i]} | sed -E '
+      s/[0-9]+/line &/
+      s/([0-9]+) /\1, /g
+      s/line ([0-9]+,)/lines \1/
+      s/([0-9]+), ([0-9]+)$/\1 and \2/
+    ')
+
+    if [ "${results[i]}" != '' ]; then
+      if [ ${results[(i+2)]} == 'remove' ]; then
+        echo "  I removed $lines, which contained \"${results[(i+1)]}\"."
+      else
+        echo "  On $lines, I replaced \"${results[(i+1)]}\" with \"${results[(i+2)]}\"."
+      fi
+    fi
+  done
+
+  #for filename in $files_to_redact; do
+    #cp $filename ~/Desktop
+    #echo $filename
+  #done
+
+  #
+  ### REDACT ###
+  #
+  sed -f redact_$filename.sed < $filename > test_$filename
+
+  unset swap_array
+  unset results
+
 done
 
 echo -e "\n--> You approve these changes? (Hit \"y\" or \"n\")"
 
-#for file in ${redactfiles[*]}; do
-  #for ((i=0; i<$len; i=(i+2))); do
-    #sed '' $file
-  #done
-#done
-
-#
-### REDACT ###
-#
-sed -f redact.sed < $1 > test_redaction.txt
-
-#sed -n '$ s/redacted/&/p' ./.gitredact
-
-redacted=true
