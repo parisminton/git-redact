@@ -4,6 +4,17 @@ git-redact
 Changelog
 ---------
 
+**2/26/13**
+
+1. Creates only one redact.sed file and one swap_array.
+
+2. Confirmation report formatting changes.
+
+
+
+
+
+
 **2/21/13**
 
 Redacts multiple files, and confirms changes made to each file separately.
@@ -25,9 +36,9 @@ Redacts multiple files, and confirms changes made to each file separately.
 
 1. Confirmation reporting is prettier. If a redaction occurs on more than one line, the line numbers are separated by commas before they're printed in the sentence. The last number is separated from the penultimate number by spaces and the word 'and'.
 
-The odd line break is gone.
+2. The odd line break is gone.
 
-2. More consistent replacement of word boundaries.
+3. More consistent replacement of word boundaries.
 
 
 

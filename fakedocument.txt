@@ -11,7 +11,7 @@ console.log("Say 'what' just one more time!");
 
 Here's one of my go-to dummy values: mokey
 
-The giant rabbit android on "Aqua Teen Hunger Force" used to say "1234."
+The giant rabbit android on "Aqua Teen Hunger Force" used to say "0123456789."
 
 Michael Jordan's Twitter handle is '@michael23jordan'.
 

@@ -6,7 +6,7 @@
 # <parisminton@da.ydrea.ms>
 
 vrs='v 0.1'
-lastchange='2/21/13'
+lastchange='2/26/13'
 
 echo -e "\n--> git-redact $vrs $lastchange <--"
 
@@ -19,25 +19,27 @@ fi
 #files_to_redact=$(git status --porcelain | sed 's/^.. \(.*\)$/\1/g')
 files_to_redact="fakedocument.txt fakedocument_2.txt fakedocument_3.txt"
 
+redact_sed_written=false
+
+#
+### COLLECT ###
+#
+# store the values to be swapped in an array
+swap_array=($(sed -n '/^#/n
+/ \= / ! {
+  s/^\(.*\)$/\1 remove/p
+}
+s/\(.*\) \= \(.*\)$/\1 \2/p
+' < .gitredact-template))
+
+len=${#swap_array[*]}
+
+#for value in ${swap_array[*]}; do
+  #echo $value
+#done
+#echo "The length of swap_array is ${#swap_array[*]}."
+
 for filename in $files_to_redact; do
-
-  #
-  ### COLLECT ###
-  #
-  # store the values to be swapped in an array
-  swap_array=($(sed -n '/^#/n
-  / \= / ! {
-    s/^\(.*\)$/\1 remove/p
-  }
-  s/\(.*\) \= \(.*\)$/\1 \2/p
-  ' < .gitredact-template))
-
-  len=${#swap_array[*]}
-
-  #for value in ${swap_array[*]}; do
-    #echo $value
-  #done
-  #echo "The length of swap_array is ${#swap_array[*]}."
 
   # write the redaction rules to a file
   # store our redact/replace values and their line numbers in an array
@@ -71,14 +73,20 @@ for filename in $files_to_redact; do
 
     # write redaction instructions to a file
     if [ ${swap_array[(i+1)]} == 'remove' ]; then
-      echo -e "/${swap_array[i]}/ d" >> redact_$filename.sed
+      if ! $redact_sed_written; then
+        echo -e "/${swap_array[i]}/ d" >> redact.sed
+      fi
       results[${#results[*]}]='remove'
     else
-      echo -e "s/${swap_array[i]}/${swap_array[(i+1)]}/g" >> redact_$filename.sed
+      if ! $redact_sed_written; then
+        echo -e "s/${swap_array[i]}/${swap_array[(i+1)]}/g" >> redact.sed
+      fi
       results[${#results[*]}]=${swap_array[(i+1)]}
     fi
 
   done
+  
+  redact_sed_written=true
 
   r_len=${#results[*]}
 
@@ -91,8 +99,7 @@ for filename in $files_to_redact; do
   ### CONFIRM ###
   #
   # print the results to standard output and prompt for approval
-  echo -e "\n--------------------------------------------------------"
-  echo -e "I made the following changes in $filename:\n"
+  echo -e "$(tput smul)\nI made the following changes in $filename:$(tput rmul)\n"
 
   for ((i=0; i<$r_len; i=(i+3))); do
 
@@ -113,20 +120,13 @@ for filename in $files_to_redact; do
     fi
   done
 
-  #for filename in $files_to_redact; do
-    #cp $filename ~/Desktop
-    #echo $filename
-  #done
-
   #
   ### REDACT ###
   #
-  sed -f redact_$filename.sed < $filename > test_$filename
+  sed -f redact.sed < $filename > test_$filename
 
-  unset swap_array
   unset results
 
 done
 
-echo -e "\n--> You approve these changes? (Hit \"y\" or \"n\")"
-
+echo -e "$(tput setaf 4)\n\n--> You approve these changes? (Hit \"y\" or \"n\")\n$(tput setaf 4)"
