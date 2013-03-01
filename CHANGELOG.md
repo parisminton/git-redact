@@ -4,9 +4,18 @@ git-redact
 Changelog
 ---------
 
+**3/1/13**
+
+When the user approves redactions, originals are copied to a .gitignored folder and the redacted versions are renamed in their place.
+
+
+
+
+
+
 **2/26/13**
 
-1. Creates only one redact.sed file and one swap_array.
+1. Creates only one redact.sed file and one `swap_array`.
 
 2. Confirmation report formatting changes.
 

@@ -5,8 +5,8 @@
 # By parisminton for Concrete Daydreams.
 # <parisminton@da.ydrea.ms>
 
-vrs='v 0.1'
-lastchange='2/26/13'
+vrs='v 1'
+lastchange='3/1/13'
 
 echo -e "\n--> git-redact $vrs $lastchange <--"
 
