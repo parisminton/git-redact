@@ -123,10 +123,27 @@ for filename in $files_to_redact; do
   #
   ### REDACT ###
   #
-  sed -f redact.sed < $filename > test_$filename
+  sed -f redact.sed < $filename > redacted_$filename
 
   unset results
 
 done
 
-echo -e "$(tput setaf 4)\n\n--> You approve these changes? (Hit \"y\" or \"n\")\n$(tput setaf 4)"
+until [ "$approve" == "y" -o "$approve" == "n" ]; do
+  echo -e "$(tput setaf 4)\n\n--> You approve these changes? (Hit \"y\" or \"n\")\n$(tput sgr0)"
+  read approve
+done
+
+if [ "$approve" == "y" ]; then
+  if [ -d .redacted_originals ]; then
+    for filename in $files_to_redact; do
+      mv $filename .redacted_originals/orig_$filename
+      mv redacted_$filename $filename
+    done
+    echo -e "\n  I moved the original files to the $(tput setaf 4).redacted_originals$(tput sgr0) directory and put the redacted versions in their place. Your next 'git add' will stage the redacted versions.\n"
+  fi
+elif [ "$approve" == "n" ]; then
+  for filename in $files_to_redact; do
+    rm -P redacted_$filename
+  done
+fi
