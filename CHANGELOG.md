@@ -4,6 +4,20 @@ git-redact
 Changelog
 ---------
 
+**3/3/13**
+
+1. Clears old files and restores originals before starting a new redaction.
+
+2. Renamed *.gitredact-template* to *.gitredact*.
+
+3. Renamed *.gitredact* to *git-redact*. (Git command-style, no longer hidden.)
+
+
+
+
+
+
+
 **3/1/13**
 
 When the user approves redactions, originals are copied to a .gitignored folder and the redacted versions are renamed in their place.
