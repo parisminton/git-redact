@@ -29,6 +29,8 @@ if [ -e redact.sed ]; then
   rm -P redact.sed
 fi
 
+redact_sed_written=false
+
 if [[ "$(ls -1A .redacted_originals | wc -l)" -gt 0 ]]; then
   echo -e "It looks like there are original files in the $(tput setaf 4).redacted_originals$(tput sgr0) folder. I'll restore them ...\n"
   for file in $(ls -1A .redacted_originals); do
@@ -37,8 +39,6 @@ if [[ "$(ls -1A .redacted_originals | wc -l)" -gt 0 ]]; then
     mv ".redacted_originals/$file" "$original_basename"
   done
 fi
-
-redact_sed_written=false
 
 
 #
@@ -50,7 +50,7 @@ swap_array=($(sed -n '/^#/n
   s/^\(.*\)$/\1 remove/p
 }
 s/\(.*\) \= \(.*\)$/\1 \2/p
-' < .gitredact-template))
+' < .gitredact))
 
 len=${#swap_array[*]}
 
