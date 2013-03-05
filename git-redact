@@ -5,10 +5,10 @@
 # By parisminton for Concrete Daydreams.
 # <parisminton@da.ydrea.ms>
 
-vrs='v 1'
-lastchange='3/3/13'
+vrs='v.1'
+lastchange='3/5/13'
 
-echo -e "\n--> git-redact $vrs $lastchange <--"
+echo -e "\n--> git-redact $vrs $lastchange <--\n"
 
 # OS-specific word boundary syntax
 if [ $(uname) == 'Darwin' ]; then
@@ -21,21 +21,57 @@ files_to_redact="fakedocument.txt fakedocument_2.txt fakedocument_3.txt"
 
 
 #
+### SET UP ###
+#
+# create .redacted_originals and .gitredact if they don\'t already exist. hide them.
+
+if [ ! -d .redacted_originals ]; then
+  mkdir .redacted_originals
+  echo -e "  I created a $(tput setaf 4).redacted_originals$(tput sgr0) directory. It's hidden, so use 'ls -a' to see it in directory listings.\n"
+fi
+
+if [ -f .gitignore ]; then
+  grep -q ".gitredact" .gitignore
+  if [ $? -ne 0 ]; then
+    echo -e ".gitredact" >> .gitignore
+    echo -e "  I added $(tput setaf 4)\".gitredact\"$(tput sgr0) to your $(tput setaf 4).gitignore$(tput sgr0) file.\n"
+  fi
+
+  grep -q ".redacted_originals" .gitignore
+  if [ $? -ne 0 ]; then
+    echo -e ".redacted_originals" >> .gitignore
+    echo -e "  I added $(tput setaf 4)\".redacted_originals\"$(tput sgr0) to your $(tput setaf 4).gitignore$(tput sgr0) file.\n"
+  fi
+else
+  echo -e ".gitredact\n.redacted_originals" >> .gitignore
+  echo -e "  I created a $(tput setaf 4).gitignore$(tput sgr0) file and added $(tput setaf 4)\".gitredact\"$(tput sgr0) and $(tput setaf 4)\".redacted_originals\"$(tput sgr0) to it.\n"
+fi
+ 
+if [ ! -f .gitredact ]; then
+  echo -e "# These are patterns for sed matching, not strings.\n# pattern_to_be_replaced = pattern_to_replace_it\n# pattern_to_be_removed" > .gitredact
+  echo -e "  I created a $(tput setaf 4).gitredact$(tput sgr0) file. It's hidden, so use 'ls -a' to see it in directory listings. Before I can do any redactions, you'll need to add patterns to it.\n\n  Your next 'git add' will stage your unredacted code.\n"
+  exit 1
+fi
+
+
+#
 ### CHECK ###
 #
 # before redacting, make sure old redactions have been cleared and reverted
 
-if [ -e redact.sed ]; then
-  rm -P redact.sed
+if [ -f redact.sed ]; then
+  rm redact.sed
 fi
 
 redact_sed_written=false
 
 if [[ "$(ls -1A .redacted_originals | wc -l)" -gt 0 ]]; then
-  echo -e "It looks like there are original files in the $(tput setaf 4).redacted_originals$(tput sgr0) folder. I'll restore them ...\n"
+  echo -e "  It looks like there are original files in the $(tput setaf 4).redacted_originals$(tput sgr0) folder. I'll restore them ...\n"
   for file in $(ls -1A .redacted_originals); do
     original_basename=$(echo -e $file | sed 's/orig_\(.*$\)/\1/g')
-    rm -P "$original_basename"
+    if [ -f $original_basename ]; then
+      rm "$original_basename"
+    fi
     mv ".redacted_originals/$file" "$original_basename"
   done
 fi
@@ -45,15 +81,27 @@ fi
 ### COLLECT ###
 #
 # store the values to be swapped in an array
-swap_array=($(sed -n '/^#/n
-/ \= / ! {
-  s/^\(.*\)$/\1 remove/p
+swap_array=($(sed -n '/^#/ ! {
+  / \= / ! {
+    s/^\(.*\)$/\1 remove/p
+  }
+  s/\(.*\) \= \(.*\)$/\1 \2/p
 }
-s/\(.*\) \= \(.*\)$/\1 \2/p
 ' < .gitredact))
 
 len=${#swap_array[*]}
 
+# for ((i=0; i<$len; i=(i+1))); do
+  # echo ${swap_array[i]}
+# done
+
+# echo -e "swap_array's length is ${#swap_array[*]}"
+
+if [[ ${#swap_array[*]} -eq 0 ]]; then
+  echo -e "  $(tput setaf 1)Hmmm ...$(tput sgr0) I didn't find any patterns I could use to make redactions. Have you filled out your $(tput setaf 1).gitredact$(tput sgr0) file?\n\n  For now, I've made no redactions. Your next 'git add' will stage your unredacted code.\n"
+  exit 1
+fi
+  
 for filename in $files_to_redact; do
 
   # write the redaction rules to a file
@@ -105,6 +153,9 @@ for filename in $files_to_redact; do
 
   r_len=${#results[*]}
 
+  # for ((i=0; i<$r_len; i=(i+1))); do
+    # echo ${results[i]}
+  # done
 
   #
   ### CONFIRM ###
@@ -155,8 +206,10 @@ if [ "$approve" == "y" ]; then
   fi
 elif [ "$approve" == "n" ]; then
   for filename in $files_to_redact; do
-    rm -P redacted_$filename
+    rm redacted_$filename
   done
+  echo -e "\n  OK. Those redactions have not taken effect, and your next 'git add' will stage your unredacted code. \n"
 fi
 
-rm -P redact.sed
+rm redact.sed
+exit 0

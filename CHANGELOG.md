@@ -4,6 +4,16 @@ git-redact
 Changelog
 ---------
 
+**3/5/13**
+
+1. Exits 1 if it can't find patterns to use for redactions. Exits 0 otherwise.
+
+2. Initialization. Creates *.gitredact*, *.redacted_originals* and *.gitignore* if they don't exist. Exits 1 after creating *.gitredact*, because the user hasn't yet added patterns to it.
+
+3. Error and task messages during initialization.
+
+
+
 **3/3/13**
 
 1. Clears old files and restores originals before starting a new redaction.
@@ -14,16 +24,9 @@ Changelog
 
 
 
-
-
-
-
 **3/1/13**
 
 When the user approves redactions, originals are copied to a .gitignored folder and the redacted versions are renamed in their place.
-
-
-
 
 
 
@@ -35,14 +38,9 @@ When the user approves redactions, originals are copied to a .gitignored folder 
 
 
 
-
-
-
 **2/21/13**
 
 Redacts multiple files, and confirms changes made to each file separately.
-
-
 
 
 
@@ -51,7 +49,6 @@ Redacts multiple files, and confirms changes made to each file separately.
 1. Patterns that aren\'t found don\'t print to the confirmation report.
 
 2. Instead of appearing many times in the confirmation report, redaction matches are printed only once for all their occurrences. 
-
 
 
 
