@@ -6,7 +6,7 @@
 # <parisminton@da.ydrea.ms>
 
 vrs='v.1'
-lastchange='3/5/13'
+lastchange='3/14/13'
 
 echo -e "\n--> git-redact $vrs $lastchange <--\n"
 
@@ -81,13 +81,21 @@ fi
 ### COLLECT ###
 #
 # store the values to be swapped in an array
+
+OLD_IFS=$IFS
+IFS=$'\n'
+
 swap_array=($(sed -n '/^#/ ! {
   / \= / ! {
-    s/^\(.*\)$/\1 remove/p
+    s/^\(.*\)$/\1\
+remove/p
   }
-  s/\(.*\) \= \(.*\)$/\1 \2/p
+  s/\(.*\) \= \(.*\)$/\1\
+\2/p
 }
 ' < .gitredact))
+
+IFS=$OLD_IFS
 
 len=${#swap_array[*]}
 
@@ -135,7 +143,7 @@ for filename in $files_to_redact; do
     results[${#results[*]}]=$condensed_match
 
     # write redaction instructions to a file
-    if [ ${swap_array[(i+1)]} == 'remove' ]; then
+    if [ "${swap_array[(i+1)]}" == 'remove' ]; then
       if ! $redact_sed_written; then
         echo -e "/${swap_array[i]}/ d" >> redact.sed
       fi
@@ -174,7 +182,7 @@ for filename in $files_to_redact; do
     ')
 
     if [ "${results[i]}" != '' ]; then
-      if [ ${results[(i+2)]} == 'remove' ]; then
+      if [ "${results[(i+2)]}" == 'remove' ]; then
         echo "  I removed $lines, which contained \"${results[(i+1)]}\"."
       else
         echo "  On $lines, I replaced \"${results[(i+1)]}\" with \"${results[(i+2)]}\"."

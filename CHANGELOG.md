@@ -4,6 +4,12 @@ git-redact
 Changelog
 ---------
 
+**3/14/13**
+
+Fixed a huge bug by changing IFS while `swap_array` is created. This allows the correct storage of patterns that include spaces.
+
+
+
 **3/5/13**
 
 1. Exits 1 if it can't find patterns to use for redactions. Exits 0 otherwise.
