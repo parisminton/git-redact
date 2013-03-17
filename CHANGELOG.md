@@ -4,6 +4,12 @@ git-redact
 Changelog
 ---------
 
+**3/16/13**
+
+If none of the redaction patterns are found and no changes are made in a file, exclude it from the confirmation report. Only print information for files in which changes have been made.
+
+
+
 **3/14/13**
 
 Fixed a huge bug by changing IFS while `swap_array` is created. This allows the correct storage of patterns that include spaces.
