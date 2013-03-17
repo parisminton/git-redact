@@ -4,6 +4,12 @@ git-redact
 Changelog
 ---------
 
+**3/17/13**
+
+Updated *README* with instructions.
+
+
+
 **3/16/13**
 
 If none of the redaction patterns are found and no changes are made in a file, exclude it from the confirmation report. Only print information for files in which changes have been made.
@@ -44,7 +50,7 @@ When the user approves redactions, originals are copied to a .gitignored folder 
 
 **2/26/13**
 
-1. Creates only one redact.sed file and one `swap_array`.
+1. Creates only one *redact.sed* file and one `swap_array`.
 
 2. Confirmation report formatting changes.
 
@@ -58,7 +64,7 @@ Redacts multiple files, and confirms changes made to each file separately.
 
 **2/19/13**
 
-1. Patterns that aren\'t found don\'t print to the confirmation report.
+1. Patterns that aren't found don't print to the confirmation report.
 
 2. Instead of appearing many times in the confirmation report, redaction matches are printed only once for all their occurrences. 
 
