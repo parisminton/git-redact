@@ -6,9 +6,20 @@
 # <parisminton@da.ydrea.ms>
 
 vrs='v.1'
-lastchange='3/16/13'
+lastchange='3/20/13'
 
 echo -e "\n--> git-redact $vrs $lastchange <--\n"
+
+function stripFilenameFromPath () {
+  the_filename=$(echo "$1" | sed '/\// s/^.*\/\([a-zA-Z0-9\._-]*\)$/\1/')
+  echo $the_filename
+}
+
+function stripPathFromFilename () {
+  the_path=$(echo "$1" | sed -n 's/\(.*\/\)[a-zA-Z0-9\._-]*$/\1/p')
+  echo $the_path
+}
+
 
 # OS-specific word boundary syntax
 if [ $(uname) == 'Darwin' ]; then
@@ -16,9 +27,12 @@ if [ $(uname) == 'Darwin' ]; then
   wordboundary_right="[[:>:]]"
 fi
 
-#files_to_redact=$(git status --porcelain | sed 's/^.. \(.*\)$/\1/g')
-files_to_redact="fakedocument.txt fakedocument_2.txt fakedocument_3.txt"
+files_to_redact=$(git status --porcelain | sed 's/^.. \(.*\)$/\1/g')
+# files_to_redact="test_documents/fakedocument.txt test_documents/fakedocument_2.txt test_documents/fakedocument_3.txt"
 
+# for item in $files_to_redact; do
+  # echo $item
+# done
 
 #
 ### SET UP ###
@@ -65,15 +79,26 @@ fi
 
 redact_sed_written=false
 
-if [[ "$(ls -1A .redacted_originals | wc -l)" -gt 0 ]]; then
-  echo -e "  It looks like there are original files in the $(tput setaf 4).redacted_originals$(tput sgr0) folder. I'll restore them ...\n"
-  for file in $(ls -1A .redacted_originals); do
-    original_basename=$(echo -e $file | sed 's/orig_\(.*$\)/\1/g')
-    if [ -f $original_basename ]; then
-      rm "$original_basename"
-    fi
-    mv ".redacted_originals/$file" "$original_basename"
-  done
+if [ -f .redacted_originals/.redacted_files ] &&
+   [[ "$(ls -1A .redacted_originals | wc -l)" -gt 1 ]]; then
+  OLD_IFS=$IFS
+  IFS=$'\n'
+  redacted_files=$(less .redacted_originals/.redacted_files)
+  IFS=$OLD_IFS
+
+  if [ "$(wc -l .redacted_originals/.redacted_files | sed 's/^ *\([0-9]*\) .*$/\1/g')" -gt 0 ]; then
+    echo -e "  It looks like there are original files in the $(tput setaf 4).redacted_originals$(tput sgr0) folder. I'll restore them ...\n"
+    for filepath in $redacted_files; do
+      filename=$(stripFilenameFromPath $filepath)
+
+      if [ -f $filepath ]; then
+        rm "$filepath"
+      fi
+      mv .redacted_originals/orig_"$filename" "$filepath"
+    done
+  fi
+  rm .redacted_originals/.redacted_files
+  unset filepath
 fi
 
 
@@ -106,7 +131,7 @@ if [[ ${#swap_array[*]} -eq 0 ]]; then
   exit 1
 fi
   
-for filename in $files_to_redact; do
+for filepath in $files_to_redact; do
 
   no_matches=true
 
@@ -121,13 +146,13 @@ for filename in $files_to_redact; do
     ")
 
     # store the line number of the match
-    results[${#results[*]}]=$(sed -n "/${swap_array[i]}/ =" $filename)
+    results[${#results[*]}]=$(sed -n "/${swap_array[i]}/ =" $filepath)
     if $no_matches && [ -n "${results[(${#results[*]}-1)]}" ]; then
       no_matches=false
     fi
     
     # store the actual match, not just the user\'s pattern
-    the_match=$(sed -n "s/.*\(${swap_array[i]}\).*/\1/p" $filename)
+    the_match=$(sed -n "s/.*\(${swap_array[i]}\).*/\1/p" $filepath)
 
     # the matched value only needs to be printed once in the results
     condensed_match=$(echo $the_match | sed -n "s/.*\(${swap_array[i]}\).*/\1/p")
@@ -162,12 +187,13 @@ for filename in $files_to_redact; do
 
   r_len=${#results[*]}
 
+
   #
   ### CONFIRM ###
   #
   # print the results to standard output and prompt for approval
   if ! $no_matches; then
-    echo -e "$(tput smul)\nI made the following changes in $filename:$(tput rmul)\n"
+    echo -e "$(tput smul)\nI made the following changes in $filepath:$(tput rmul)\n"
 
     for ((i=0; i<$r_len; i=(i+3))); do
 
@@ -189,33 +215,60 @@ for filename in $files_to_redact; do
     done
   fi
 
+
   #
   ### REDACT ###
   #
-  sed -f redact.sed < $filename > redacted_$filename
+  if ! $no_matches; then
+    filename=$(stripFilenameFromPath $filepath)
+    path=$(stripPathFromFilename $filepath)
+
+    sed -f redact.sed < $filepath > "$path"redacted_"$filename"
+    echo "$filepath" >> .redacted_originals/.redacted_files
+  fi
 
   unset results
 
 done
 
-until [ "$approve" == "y" -o "$approve" == "n" ]; do
-  echo -e "$(tput setaf 4)\n\n--> You approve these changes? (Hit \"y\" or \"n\")\n$(tput sgr0)"
-  read approve
-done
-
-if [ "$approve" == "y" ]; then
-  if [ -d .redacted_originals ]; then
-    for filename in $files_to_redact; do
-      mv $filename .redacted_originals/orig_$filename
-      mv redacted_$filename $filename
-    done
-    echo -e "\n  Cool. I moved the original files to the $(tput setaf 4).redacted_originals$(tput sgr0) directory and put the redacted versions in their place. Your next 'git add' will stage the redacted versions.\n"
-  fi
-elif [ "$approve" == "n" ]; then
-  for filename in $files_to_redact; do
-    rm redacted_$filename
+if [ -f .redacted_originals/.redacted_files ]; then
+  until [ "$approve" == "y" -o "$approve" == "n" ]; do
+    echo -e "$(tput setaf 4)\n\n--> You approve these changes? (Hit \"y\" or \"n\")\n$(tput sgr0)"
+    read approve
   done
-  echo -e "\n  OK. Those redactions have not taken effect, and your next 'git add' will stage your unredacted code. \n"
+
+  OLD_IFS=$IFS
+  IFS=$'\n'
+  redacted_files=$(less .redacted_originals/.redacted_files)
+  IFS=$OLD_IFS
+
+  if [ "$approve" == "y" ]; then
+    if [ -d .redacted_originals ]; then
+      for filepath in $redacted_files; do
+        filename=$(stripFilenameFromPath $filepath)
+        path=$(stripPathFromFilename $filepath)
+
+        mv $filepath .redacted_originals/orig_"$filename"
+        mv "$path"redacted_"$filename" $filepath
+      done
+      if [ "$(wc -l .redacted_originals/.redacted_files | sed 's/^ *\([0-9]*\) .*$/\1/g' )" -eq 1 ]; then
+        echo -e "\n  Cool. I moved the original file to the $(tput setaf 4).redacted_originals$(tput sgr0) directory and put the redacted version in its place. Your next 'git add' will stage the redacted version.\n"
+      else
+        echo -e "\n  Cool. I moved the original files to the $(tput setaf 4).redacted_originals$(tput sgr0) directory and put the redacted versions in their place. Your next 'git add' will stage the redacted versions.\n"
+      fi
+    fi
+  elif [ "$approve" == "n" ]; then
+    for filepath in $redacted_files; do
+      filename=$(stripFilenameFromPath $filepath)
+      path=$(stripPathFromFilename $filepath)
+
+      rm "$path"redacted_"$filename"
+    done
+    rm .redacted_originals/.redacted_files
+    echo -e "\n  OK. Those redactions have not taken effect, and your next 'git add' will stage your unredacted code. \n"
+  fi
+else
+  echo -e "\n  I couldn't find any of your redaction patterns in the updated files. No changes were made, and your next 'git add' will stage your unredacted code.\n"
 fi
 
 rm redact.sed

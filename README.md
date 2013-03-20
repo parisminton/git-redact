@@ -21,13 +21,15 @@ How to use it
 
 ### Set up ###
 
-1. Move the *git-redact* file (not to be confused with *.gitredact*; note the hyphen and leading dot in each) somehwere your `$PATH` environment variable will see it, like /usr/local. Modify `$PATH` if necessary.
+1. [You've installed Git, right?][2]
 
-2. Switch to the Git repo in which you'll be doing automated redactions. Here, you'll need a *.gitredact* file and a directory named *.redacted_originals* (note the leading dot.) If you don't make these yourself, **git-redact** will create them if it sees they're missing.
+2. Clone this repo and move the *git-redact* file (not to be confused with *.gitredact*; note the hyphen and leading dot.) somehwere your `$PATH` environment variable will see it, like [/usr/local, if you've set it up.][3]
 
-3. Add patterns to *.gitredact*, [as explained below][2].
+3. Switch to the Git repo in which you'll be doing automated redactions. Here, you'll need a *.gitredact* file and a directory named *.redacted_originals* (note the leading dot.) If you don't make these yourself, **git-redact** will create them if it sees they're missing.
 
-4. Work as usual until you're ready to commit.
+4. Add patterns to *.gitredact*, [as explained below][4].
+
+5. Work as usual until you're ready to commit.
 
 ### Run ###
 
@@ -43,9 +45,9 @@ How to use it
 
 Yeah. I'm working on a better workflow for this.
 
-<a name="gitredactfile" />
+
 The *.gitredact* file
--------------------
+---------------------
 
 This file is simply a list of patterns **git-redact** uses to search for terms to remove and replace. Each uncommented line of *.gitredact* should contain one of the following:
 
@@ -57,7 +59,7 @@ This file is simply a list of patterns **git-redact** uses to search for terms t
 
 `# Does this cummerbund make me look fat?`
 
-The *.gitredact* file needs to contain at least one pattern for **git-redact** to work. If *.gitredact*  is empty or doesn't contain any patterns, **git-redact** outputs an alert message and exits 1 without attempting anything. 
+The *.gitredact* file needs to contain at least one pattern for **git-redact** to work. If *.gitredact*  is empty or doesn't contain any patterns, **git-redact** gives an alert message and exits 1 without attempting anything. 
 
 If *.gitredact* doesn't exist, **git-redact** creates it, outputs a confirmation message and exits 1. It won't redact until the user adds patterns to the *.gitredact* file, and it will print a reminder each time it's run with no patterns available.
 
@@ -71,9 +73,10 @@ Bookend a pattern with `\b` to match it standing alone in the file.
 Footnotes
 ---------
 
-<a name="githooks" />
-1. I've given some thought to firing these processes on the pre-commit hook, so you wouldn't have to type any extra commands to start them. Is this in line with Git's usage philosophy, though?
+1. I've given some thought to firing these processes on the pre-commit hook, so it would be built into the commit workflow. But is this in line with Git's usage philosophy?
 
 
-[1]: #githooks "I've given some thought to firing these processes on the pre-commit hook."
-[2]: #gitredactfile "How to set up the .gitredact file."
+[1]: #footnotes "I've given some thought to firing these processes on the pre-commit hook."
+[2]: http://git-scm.com "Git - Fast version control"
+[3]: http://hivelogic.com/articles/using_usr_local "Hivelogic - Using /usr/local"
+[4]: #the-gitredact-file "How to set up the .gitredact file."
