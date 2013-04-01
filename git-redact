@@ -6,7 +6,7 @@
 # <parisminton@da.ydrea.ms>
 
 vrs='v.1'
-lastchange='3/20/13'
+lastchange='4/1/13'
 
 echo -e "\n--> git-redact $vrs $lastchange <--\n"
 
@@ -27,7 +27,12 @@ if [ $(uname) == 'Darwin' ]; then
   wordboundary_right="[[:>:]]"
 fi
 
-files_to_redact=$(git status --porcelain | sed 's/^.. \(.*\)$/\1/g')
+files_to_redact=$(git status --porcelain | sed '
+  /^D / d
+  /^ D/ d
+  / -> / s/^.* -> \(.*\)$/\1/g
+  s/^.. \(.*\)$/\1/g
+')
 # files_to_redact="test_documents/fakedocument.txt test_documents/fakedocument_2.txt test_documents/fakedocument_3.txt"
 
 # for item in $files_to_redact; do
