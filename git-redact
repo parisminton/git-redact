@@ -35,9 +35,9 @@ files_to_redact=$(git status --short | sed '
 ')
 # files_to_redact="test_documents/fakedocument.txt test_documents/fakedocument_2.txt test_documents/fakedocument_3.txt"
 
-# for item in $files_to_redact; do
-  # echo $item
-# done
+for item in $files_to_redact; do
+  echo $item
+done
 
 #
 ### SET UP ###
