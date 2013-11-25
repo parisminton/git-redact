@@ -27,7 +27,7 @@ if [ $(uname) == 'Darwin' ]; then
   wordboundary_right="[[:>:]]"
 fi
 
-files_to_redact=$(git status --porcelain | sed '
+files_to_redact=$(git status --short | sed '
   /^D / d
   /^ D/ d
   / -> / s/^.* -> \(.*\)$/\1/g
@@ -35,14 +35,14 @@ files_to_redact=$(git status --porcelain | sed '
 ')
 # files_to_redact="test_documents/fakedocument.txt test_documents/fakedocument_2.txt test_documents/fakedocument_3.txt"
 
-# for item in $files_to_redact; do
-  # echo $item
-# done
+for item in $files_to_redact; do
+  echo $item
+done
 
 #
 ### SET UP ###
 #
-# create .redacted_originals and .gitredact if they don\'t already exist. hide them.
+# create .redacted_originals and .gitredact if they don't already exist. hide them.
 
 if [ ! -d .redacted_originals ]; then
   mkdir .redacted_originals
@@ -198,7 +198,7 @@ for filepath in $files_to_redact; do
   #
   # print the results to standard output and prompt for approval
   if ! $no_matches; then
-    echo -e "$(tput smul)\nI made the following changes in $filepath:$(tput rmul)\n"
+    echo -e "$(tput smul)\nI\'m preparing the following changes in $filepath:$(tput rmul)\n"
 
     for ((i=0; i<$r_len; i=(i+3))); do
 

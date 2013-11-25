@@ -23,7 +23,7 @@ How to use it
 
 1. [You've installed Git, right?][2]
 
-2. Clone this repo and move the *git-redact* file (not to be confused with *.gitredact*; note the hyphen and leading dot.) somehwere your `$PATH` environment variable will see it, like [/usr/local, if you've set it up.][3]
+2. Clone this repo and move the *git-redact* file (not to be confused with *.gitredact*; note the hyphen and leading dot.) somewhere your `$PATH` environment variable will see it, like [/usr/local, if you've set it up.][3]
 
 3. Switch to the Git repo in which you'll be doing automated redactions. Here, you'll need a *.gitredact* file and a directory named *.redacted_originals* (note the leading dot.) If you don't make these yourself, **git-redact** will create them if it sees they're missing.
 
