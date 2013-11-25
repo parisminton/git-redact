@@ -57,7 +57,7 @@ This file is simply a list of patterns **git-redact** uses to search for terms t
 
 - One pattern on a line by itself. The value matching this pattern will be removed and not replaced.
 
-`# Does this cummerbund make me look fat?`
+`// Does this cummerbund make me look fat?`
 
 The *.gitredact* file needs to contain at least one pattern for **git-redact** to work. If *.gitredact*  is empty or doesn't contain any patterns, **git-redact** gives an alert message and exits 1 without attempting anything. 
 

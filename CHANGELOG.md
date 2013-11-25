@@ -4,6 +4,12 @@ git-redact
 Changelog
 ---------
 
+**11/25/13**
+
+1. When redacting, ignore files that have been deleted from the previous commit.
+
+
+
 **3/20/13**
 
 1. Every time a file is redacted, its path is added to *.redacted_originals/.redacted_files*. This file is created automatically if it doesn't exist.
