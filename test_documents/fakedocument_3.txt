@@ -1,3 +1,3 @@
 DESCRIPTION
 
-Displays paths that have differences between the index file and the current HEAD commit, paths that have differences between the working tree and the index file, and paths in the working tree that are not tracked by git (and are not ignored by gitignore(1234)). The first are what you would commit by running git commit; the second and third are what you could commit by running git add before running git commit.
+Displays paths that have differences between the index file and the current HEAD commit, paths that have differences between the working tree and the index file, and paths in the working tree that are not tracked by git (and are not ignored by gitignore(onetwothreefour )). The first are what you would commit by running git commit. The second and third are what you could commit by running git add before running git commit.

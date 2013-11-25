@@ -13,7 +13,7 @@ You supply **git-redact** with a list of terms to remove or replace. Using this 
 
 Your original files are copied to an ignored backup directory and renamed. The copies, which have now been redacted, are what Git will see when it's time to stage files for committing.
 
-At this point, **git-redact** prints to the terminal a list of all the changes it's made and asks if you approve. Hit 'y' and it prints a confirmation message and exits 0. Hit 'n' and it deletes the redacted copies, moves the originals back into the directory under their old names, prints a confirmation and exits 1.
+At this point, **git-redact** prints a list of all the changes it's made and asks if you approve. Hit 'y' and it prints a confirmation message and exits 0. Hit 'n' and it deletes the redacted copies, moves the originals back into the directory under their old names, prints a confirmation and exits 1.
 
 
 How to use it
@@ -25,7 +25,7 @@ How to use it
 
 2. Clone this repo and move the *git-redact* file (not to be confused with *.gitredact*; note the hyphen and leading dot.) somewhere your `$PATH` environment variable will see it, like [/usr/local, if you've set it up.][3]
 
-3. Switch to the Git repo in which you'll be doing automated redactions. Here, you'll need a *.gitredact* file and a directory named *.redacted_originals* (note the leading dot.) If you don't make these yourself, **git-redact** will create them if it sees they're missing.
+3. Switch to the repo in which you'll be redacting. Here, you'll need a *.gitredact* file and a directory named *.redacted_originals* (note the leading dot.) You can make these yourself or **git-redact** will create them if it sees they're missing.
 
 4. Add patterns to *.gitredact*, [as explained below][4].
 
@@ -33,7 +33,7 @@ How to use it
 
 ### Run ###
 
-1. At the prompt: `git redact`.
+1. Redaction should always happen before adding files for a commit. At the prompt: `git redact`.
 
 2. **git-redact** will do its thing, show you a list of all the changes it's made in each file and ask you to approve. Based on your yea or nay, it finishes by telling you whether the original or redacted files are ready for staging.
 

@@ -1,12 +1,12 @@
 #!/bin/bash
-
+#
 # > git-redact <
-# Removes things you don\'t want in your commits.
-# By parisminton for Concrete Daydreams.
-# <parisminton@da.ydrea.ms>
+#
+# Removes things you don't want in your commits.
+# james@da.ydrea.ms
 
 vrs='v.1'
-lastchange='4/1/13'
+lastchange='11/25/13'
 
 echo -e "\n--> git-redact $vrs $lastchange <--\n"
 
@@ -35,9 +35,9 @@ files_to_redact=$(git status --short | sed '
 ')
 # files_to_redact="test_documents/fakedocument.txt test_documents/fakedocument_2.txt test_documents/fakedocument_3.txt"
 
-for item in $files_to_redact; do
-  echo $item
-done
+# for item in $files_to_redact; do
+  # echo $item
+# done
 
 #
 ### SET UP ###
@@ -198,7 +198,7 @@ for filepath in $files_to_redact; do
   #
   # print the results to standard output and prompt for approval
   if ! $no_matches; then
-    echo -e "$(tput smul)\nI\'m preparing the following changes in $filepath:$(tput rmul)\n"
+    echo -e "\n$(tput smul)I'm preparing the following changes in $(tput bold)$filepath$(tput sgr0):$(tput rmul)\n"
 
     for ((i=0; i<$r_len; i=(i+3))); do
 
