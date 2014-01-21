@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# capture stdin
+commit_content=$(more)
+
+# OS-specific word boundary syntax
+if [ $(uname) == 'Darwin' ]; then
+  wordboundary_left="[[:<:]]"
+  wordboundary_right="[[:>:]]"
+fi
+
+
+#
+### CHECK ###
+#
+# before redacting, make sure old redactions have been cleared and reverted
+
+if [ -f redact.sed ]; then
+  rm redact.sed
+fi
+
+redact_sed_written=false
+
+
+#
+### COLLECT ###
+#
+# store the values to be swapped in an array
+
+OLD_IFS=$IFS
+IFS=$'\n'
+
+swap_array=($(sed -n '/^#/ ! {
+  / \= / ! {
+    s/^\(.*\)$/\1\
+remove/p
+  }
+  s/\(.*\) \= \(.*\)$/\1\
+\2/p
+}
+' < .gitredact))
+
+IFS=$OLD_IFS
+
+len=${#swap_array[*]}
+
+# by default, there are zero matches
+no_matches=true
+
+# write the redaction rules to a file
+# store our redact/replace values and their line numbers in an array
+for ((i=0; i<$len; i=(i+2))); do
+
+  # replace any word boundaries with the proper versions for the OS
+  swap_array[i]=$(echo "${swap_array[i]}" | sed -E "
+    s/^\\\b/$wordboundary_left/
+    s/\\\b$/$wordboundary_right/
+  ")
+
+  # store the line number of the match
+  results[${#results[*]}]=$(echo "$commit_content" | sed -n "/${swap_array[i]}/ =")
+  if $no_matches && [ -n "${results[(${#results[*]}-1)]}" ]; then
+    no_matches=false
+  fi
+  
+  # store the actual match, not just the user\'s pattern
+  the_match=$(echo "$commit_content" | sed -n "s/.*\(${swap_array[i]}\).*/\1/p")
+
+  # the matched value only needs to be printed once in the results
+  condensed_match=$(echo $the_match | sed -n "s/.*\(${swap_array[i]}\).*/\1/p")
+
+  # if the pattern originally included word boundaries, restore them in the result
+  if [[ "${swap_array[i]}" =~ "$wordboundary_left" ||
+        "${swap_array[i]}" =~ "$wordboundary_right" ]]; then
+    condensed_match=$(echo $condensed_match | sed "
+      s/$wordboundary_left/\\\b/g
+      s/$wordboundary_right/\\\b/g
+    ")
+  fi
+
+  results[${#results[*]}]=$condensed_match
+
+  # write redaction instructions to a file
+  if [ "${swap_array[(i+1)]}" == 'remove' ]; then
+    if ! $redact_sed_written; then
+      echo -e "/${swap_array[i]}/ d" >> redact.sed
+    fi
+    results[${#results[*]}]='remove'
+  else
+    if ! $redact_sed_written; then
+      echo -e "s/${swap_array[i]}/${swap_array[(i+1)]}/g" >> redact.sed
+    fi
+    results[${#results[*]}]=${swap_array[(i+1)]}
+  fi
+
+done
+
+redact_sed_written=true
+
+r_len=${#results[*]}
+
+echo "$commit_content" | sed 's/t/ /g'
