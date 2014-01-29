@@ -1,5 +1,10 @@
 #!/bin/bash
 
+vrs='v.2'
+lastchange='1/29/14'
+
+echo -e "\n--> git-redact $vrs $lastchange <--\n"
+
 # capture stdin
 commit_content=$(more)
 
@@ -7,6 +12,29 @@ commit_content=$(more)
 if [ $(uname) == 'Darwin' ]; then
   wordboundary_left="[[:<:]]"
   wordboundary_right="[[:>:]]"
+fi
+
+
+#
+### SET UP ###
+#
+# create gitredact if it doesn't already exist. hide it.
+
+if [ -f .gitignore ]; then
+  grep -q ".gitredact" .gitignore
+  if [ $? -ne 0 ]; then
+    echo -e ".gitredact" >> .gitignore
+    echo -e "  I added $(tput setaf 4)\".gitredact\"$(tput sgr0) to your $(tput setaf 4).gitignore$(tput sgr0) file.\n"
+  fi
+else
+  echo -e ".gitredact" >> .gitignore
+  echo -e "  I created a $(tput setaf 4).gitignore$(tput sgr0) file and added $(tput setaf 4)\".gitredact\"$(tput sgr0) to it.\n"
+fi
+ 
+if [ ! -f .gitredact ]; then
+  echo -e "# These are patterns for sed matching, not strings.\n# pattern_to_be_replaced = pattern_to_replace_it\n# pattern_to_be_removed" > .gitredact
+  echo -e "  I created a $(tput setaf 4).gitredact$(tput sgr0) file. It's hidden, so use 'ls -a' to see it in directory listings. Before I can do any redactions, you'll need to add patterns to it.\n\n  Your next 'git add' will stage your unredacted code.\n"
+  exit 1
 fi
 
 
@@ -99,4 +127,4 @@ redact_sed_written=true
 
 r_len=${#results[*]}
 
-echo "$commit_content" | sed 's/t/ /g'
+echo "$commit_content" | sed 's/g/ /g'

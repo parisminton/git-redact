@@ -4,6 +4,20 @@ git-redact
 Changelog
 ---------
 
+**1/29/14**
+
+1. Add set-up step to *read_test*, hereafter known as v.2.
+
+
+
+**1/20/14**
+
+1. Firing redactions via the `smudge` filter might work. This would leave git less confused about redacted values in the head not matching the raw values in the working tree.
+
+2. Rather than identifying and operating on files via `git status --porcelain`, the redaction routine would run once for every piece of standard input.
+
+
+
 **11/25/13**
 
 1. When redacting, ignore files that have been deleted from the previous commit.
