@@ -127,4 +127,33 @@ redact_sed_written=true
 
 r_len=${#results[*]}
 
+
+#
+### CONFIRM ###
+#
+# print the results to standard output and prompt for approval
+if ! $no_matches; then
+  echo -e "\n$(tput smul)I'm preparing the following changes in $(tput bold)$filepath$(tput sgr0):$(tput rmul)\n" >> redact_conf.txt
+
+  for ((i=0; i<$r_len; i=(i+3))); do
+
+    # if redactions were made on multiple lines, separate line numbers with commas
+    lines=$(echo ${results[i]} | sed -E '
+      s/[0-9]+/line &/
+      s/([0-9]+) /\1, /g
+      s/line ([0-9]+,)/lines \1/
+      s/([0-9]+), ([0-9]+)$/\1 and \2/
+    ')
+
+    if [ "${results[i]}" != '' ]; then
+      if [ "${results[(i+2)]}" == 'remove' ]; then
+        echo "  I removed $lines, which contained \"${results[(i+1)]}\"." >> redact_conf.txt
+      else
+        echo "  On $lines, I replaced \"${results[(i+1)]}\" with \"${results[(i+2)]}\"." >> redact_conf.txt
+      fi
+    fi
+  done
+fi
+
+
 echo "$commit_content" | sed 's/g/ /g'

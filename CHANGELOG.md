@@ -8,6 +8,8 @@ Changelog
 
 1. Add set-up step to *read_test*, hereafter known as v.2.
 
+2. First attempt to write confirmations to a file works.
+
 
 
 **1/20/14**
