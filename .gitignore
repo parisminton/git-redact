@@ -1,9 +1,1 @@
-.gitigno e
-*.swp
-.git edact
-. edacted_o iginals
-.gitatt ibutes
-wonde 
- ead_test
- edact.sed
-soapy
+.gitignore *.swp .gitredact .redacted_originals .gitattributes wonder read_test redact.sed soapy grungy
