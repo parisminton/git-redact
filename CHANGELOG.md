@@ -4,6 +4,12 @@ git-redact
 Changelog
 ---------
 
+**2/5/14**
+
+1. Set-up adds *.gitattributes* if it doesn't already exist.
+
+
+
 **1/29/14**
 
 1. Add set-up step to *read_test*, hereafter known as v.2.

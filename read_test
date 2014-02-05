@@ -1,9 +1,9 @@
 #!/bin/bash
 
 vrs='v.2'
-lastchange='1/29/14'
+lastchange='2/5/14'
 
-echo -e "\n--> git-redact $vrs $lastchange <--\n"
+echo -e "\n--> git-redact $vrs $lastchange <--\n" > /dev/tty
 
 # capture stdin
 commit_content=$(more)
@@ -18,22 +18,38 @@ fi
 #
 ### SET UP ###
 #
-# create gitredact if it doesn't already exist. hide it.
+# create gitredact and gitattributes if they doesn't already exist.
+
+if [ ! -f .gitattributes ]; then
+  echo -e "* filter=redact" > .gitattributes
+  echo -e "  I created a $(tput setaf 4).gitattributes$(tput sgr0) file and added the redact filter to it.\n" > /dev/tty
+else
+  grep -q "filter=redact" .gitattributes
+  if [ $? -ne 0 ]; then
+    echo -e "* filter=redact" > .gitattributes
+    echo -e "  I added the redact filter to your $(tput setaf 4).gitattributes$(tput sgr0) file.\n" > /dev/tty
+  fi
+fi
 
 if [ -f .gitignore ]; then
   grep -q ".gitredact" .gitignore
   if [ $? -ne 0 ]; then
     echo -e ".gitredact" >> .gitignore
-    echo -e "  I added $(tput setaf 4)\".gitredact\"$(tput sgr0) to your $(tput setaf 4).gitignore$(tput sgr0) file.\n"
+    echo -e "  I added $(tput setaf 4)\".gitredact\"$(tput sgr0) to your $(tput setaf 4).gitignore$(tput sgr0) file.\n" > /dev/tty
+  fi
+  grep -q ".gitattributes" .gitignore
+  if [ $? -ne 0 ]; then
+    echo -e ".gitattributes" >> .gitignore
+    echo -e "  I added $(tput setaf 4)\".gitattributes\"$(tput sgr0) to your $(tput setaf 4).gitignore$(tput sgr0) file.\n" > /dev/tty
   fi
 else
-  echo -e ".gitredact" >> .gitignore
-  echo -e "  I created a $(tput setaf 4).gitignore$(tput sgr0) file and added $(tput setaf 4)\".gitredact\"$(tput sgr0) to it.\n"
+  echo -e ".gitredact\n.gitattributes" >> .gitignore
+  echo -e "  I created a $(tput setaf 4).gitignore$(tput sgr0) file and added $(tput setaf 4)\".gitredact\"$(tput sgr0) and $(tput setaf 4)\".gitattributes\"$(tput sgr0) to it.\n" > /dev/tty
 fi
  
 if [ ! -f .gitredact ]; then
   echo -e "# These are patterns for sed matching, not strings.\n# pattern_to_be_replaced = pattern_to_replace_it\n# pattern_to_be_removed" > .gitredact
-  echo -e "  I created a $(tput setaf 4).gitredact$(tput sgr0) file. It's hidden, so use 'ls -a' to see it in directory listings. Before I can do any redactions, you'll need to add patterns to it.\n\n  Your next 'git add' will stage your unredacted code.\n"
+  echo -e "  I created a $(tput setaf 4).gitredact$(tput sgr0) file. It's hidden, so use 'ls -a' to see it in directory listings. Before I can do any redactions, you'll need to add patterns to it.\n\n  Your next 'git add' will stage your unredacted code.\n" > /dev/tty
   exit 1
 fi
 
@@ -133,7 +149,7 @@ r_len=${#results[*]}
 #
 # print the results to standard output and prompt for approval
 if ! $no_matches; then
-  echo -e "\n$(tput smul)I'm preparing the following changes in $(tput bold)$filepath$(tput sgr0):$(tput rmul)\n" >> redact_conf.txt
+  echo -e "\n$(tput smul)I'm preparing the following changes in $(tput bold)$1$(tput sgr0):$(tput rmul)\n" >> redact_conf.txt
 
   for ((i=0; i<$r_len; i=(i+3))); do
 
@@ -156,4 +172,5 @@ if ! $no_matches; then
 fi
 
 
-echo "$commit_content" | sed 's/g/ /g'
+echo "$commit_content" | sed 's/h/ /g' > /dev/tty
+echo "$1" > /dev/tty
