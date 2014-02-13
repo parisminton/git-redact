@@ -4,6 +4,12 @@ git-redact
 Changelog
 ---------
 
+**2/13/14**
+
+1. Add filter settings to *.git/config* if they're not already there.
+
+
+
 **2/5/14**
 
 1. Set-up adds *.gitattributes* if it doesn't already exist.

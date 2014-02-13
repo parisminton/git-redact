@@ -31,6 +31,14 @@ else
   fi
 fi
 
+if [ -f .git/config ]; then
+  grep -q '[filter "redact"]' .git/config
+  if [ $? -ne 0 ]; then
+    echo -e '[filter "redact"]\n  clean = ./soapy %f\n  smudge = ./jacques %f' > .git/config
+    echo -e "  I added filter settings to your $(tput setaf 4).git/config$(tput sgr0) file.\n" > /dev/tty
+  fi
+fi
+
 if [ -f .gitignore ]; then
   grep -q ".gitredact" .gitignore
   if [ $? -ne 0 ]; then
