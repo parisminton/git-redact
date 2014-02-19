@@ -1,7 +1,7 @@
 #!/bin/bash
 
 vrs='v.2'
-lastchange='2/13/14'
+lastchange='2/28/14'
 
 echo -e "\n--> git-redact $vrs $lastchange <--\n" > /dev/tty
 
@@ -14,6 +14,15 @@ if [ $(uname) == 'Darwin' ]; then
   wordboundary_right="[[:>:]]"
 fi
 
+if [ $1 == 'init'  ]; then
+  echo -e 'papermill'
+  exit 0
+fi
+
+if [ $1 == 'uninstall'  ]; then
+  echo -e 'there was free beer'
+  exit 0
+fi
 
 #
 ### SET UP ###
@@ -32,14 +41,10 @@ else
 fi
 
 if [ -f .git/config ]; then
-  echo -e "KING" > /dev/tty
   grep -q '\[filter "redact"\]' .git/config
   if [ $? -ne 0 ]; then
-    echo -e '[filter "redact"]\n  clean = ./soapy %f\n  smudge = ./jacques %f' >> .git/config
+    echo -e '[filter "redact"]\n  clean = ./soapy %f\n  smudge = cat' >> .git/config
     echo -e "  I added filter settings to your $(tput setaf 4).git/config$(tput sgr0) file.\n" > /dev/tty
-  else
-    echo -e "Nope" > /dev/tty
-  fi
 fi
 
 if [ -f .gitignore ]; then
